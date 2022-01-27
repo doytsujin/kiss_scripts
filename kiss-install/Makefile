@@ -1,0 +1,2 @@
+nuke:
+	rm -rf ../chroot/*
