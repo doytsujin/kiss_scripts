@@ -1,4 +1,4 @@
-#!/bin/mksh
+#!/bin/sh
 
 set -o pipefail
 log() {
