@@ -1,8 +1,8 @@
 #!/bin/sh
 set -o pipefail
 
-profile=/root/.profile
-kiss_repo_path=/root/repo/
+profile=/home/kiss/.profile
+kiss_repo_path=/home/kiss/repo
 user=root
 nproc=$(nproc)
 kiss=kiss
@@ -12,9 +12,11 @@ log() {
 }
 
 build() {
+	su kiss -c "
 	. $profile
 	yes '
-	' | $kiss build $*	
+	' | $kiss build $*
+	"
 }
 
 runkiss() {
@@ -22,26 +24,34 @@ runkiss() {
 }
 
 update() {
+	su kiss -c "
 	. $profile
 	yes '
 	' | $kiss update
+	"
 }
 rebuild() {
-
+	su kiss -c "
 	. $profile
 	cd /var/db/kiss/installed
 	yes '
 	' | $kiss build *
+	"
 }
 
 # adding kiss user
+yes '
 
+' | adduser \
+	--disabled-password \
+	--uid "1001" \
+	kiss
 #log "starting chroot script"
-whoami
+runkiss whoami
 # clonig the kiss repo in /root/repo
-git clone https://github.com/kisslinux/repo $kiss_repo_path
-touch $profile
-echo "export KISS_PATH='$kiss_repo_path/core:$kiss_repo_path/extra:$kiss_repo_path/wayland'
+runkiss git clone https://github.com/kisslinux/repo $kiss_repo_path
+runkiss touch $profile
+runkiss echo "export KISS_PATH='$kiss_repo_path/core:$kiss_repo_path/extra:$kiss_repo_path/wayland'
 export user=root
 export CFLAGS='-O3 -pipe -march=native'
 export CXXFLAGS='$CFLAGS'

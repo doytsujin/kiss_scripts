@@ -8,7 +8,6 @@ log() {
 chroot=../chroot
 getroot='doas'
 ver=2021.7-9
-url=https://github.com/kisslinux/repo/releases/download/$ver
 file=kiss-chroot-$ver.tar.xz
 # location of the scrip
 script_root=$(pwd)
@@ -20,9 +19,9 @@ chroot=$(pwd)
 echo $chroot
 rm -rf file
 echo $url/$file
-curl -fLO "$url/$file"
+doas curl -fLO "$url/$file"
 # extracting tar ball
-tar xvf $file
+doas tar xvf $file
 
 cp $chroot_script .
 # updating location of chroot script
