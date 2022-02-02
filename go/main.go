@@ -29,11 +29,12 @@ type Install struct {
 	password      string
 	root_drive    string
 	boot_drive    string
+	getroot       string
 }
 
 func main() {
 	sp := selection.New("Where do you want to install kiss?",
-		selection.Choices([]string{"Drive", "Folder"}))
+		selection.Choices([]string{"Install type", "Folder"}))
 	sp.PageSize = 3
 
 	choice, err := sp.RunPrompt()
@@ -49,7 +50,7 @@ func main() {
 	var folder string
 	var kiss_install Install = Install{}
 	switch choice.Value {
-	case "Drive":
+	case "Install type":
 		kiss_install = drive()
 
 	case "Folder":
@@ -62,6 +63,32 @@ func main() {
 	run_kiss_script()
 
 }
+
+// returns drivename bool rather if it is a drive root_drive name and boot_drive name
+func drive_or_folder() bool {
+
+	var isdrive bool
+	sp := selection.New("Where do you want to install kiss?",
+		selection.Choices([]string{"Install type", "Folder"}))
+	sp.PageSize = 3
+
+	choice, err := sp.RunPrompt()
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+
+		os.Exit(1)
+	}
+	switch choice.Value {
+	case "Install type":
+		isdrive = true
+
+	case "Folder":
+		isdrive = false
+
+	}
+	return isdrive
+}
+
 func run_kiss_script() {
 	cmd := exec.Command("chmod", "+x", "/tmp/kissinstall.sh")
 	cmd.Stdin = os.Stdin
@@ -108,15 +135,15 @@ echo $chroot
 cd $chroot
 chroot=$(pwd)
 echo $chroot
-m -rf file
+$getroot rm -rf $file
 echo $url/$file
-doas rm -rf ` + install.chroot_folder + "*" + `
+$getroot rm -rf ` + install.chroot_folder + "*" + `
 $getroot curl -fLO "$url/$file"
 # extracting tar ball
 
 $getroot tar xvf $file
 
-cp $chroot_script $chroot
+$getroot cp $chroot_script $chroot
 # updating location of chroot script
 chroot_script=$(pwd)/chroot.sh
 chmod +x chroot.sh
@@ -367,7 +394,7 @@ func drive() Install {
 	fmt.Println(root_drive.String)
 	fmt.Println(boot_drive.String)
 	//fmt.Println(drive.Value)
-	//fmt.Println("Drive")
+	//fmt.Println("Install type")
 
 	return Install{
 		chroot_folder: "/tmp/kiss",
