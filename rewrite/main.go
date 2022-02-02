@@ -75,15 +75,6 @@ func last_element_slice_string_and_remove(slice []string) (string, []string) {
 	return last, slice[:len(slice)-1]
 }
 
-func visualize_config(install Install) {
-	// print a nice looking table
-	if install.Drive {
-		fmt.Println("Install type:", "Install type")
-	} else {
-		fmt.Println("Install type:", "Folder")
-	}
-}
-
 // executes function based on a strings value
 func string_to_func(install Install, String string) Install {
 	// add here new options
@@ -94,6 +85,13 @@ func string_to_func(install Install, String string) Install {
 		install = ask_for_password(install)
 	case "Select drive":
 		install = select_drive(install)
+	case "Hostname":
+		install = ask_for_hostname(install)
+	case "Select boot partition":
+		install = select_boot_partition(install)
+	case "Select root partition":
+		install = select_root_partition(install)
+
 	}
 	return install
 }
@@ -223,6 +221,7 @@ func select_boot_partition(install Install) Install {
 	}
 	install.last_was_next_menu = false
 	install.boot_drive = boot_drive.String
+	install.last_step = append(install.last_step, "Select boot partition")
 	return install
 }
 
@@ -239,6 +238,7 @@ func select_root_partition(install Install) Install {
 	}
 	install.last_was_next_menu = false
 	install.root_drive = root_drive.String
+	install.last_step = append(install.last_step, "Select root partition")
 	return install
 }
 
@@ -257,6 +257,7 @@ func ask_for_hostname(install Install) Install {
 	// do something with the result
 	install.hostname = hostname
 	install.last_was_next_menu = false
+	install.last_step = append(install.last_step, "Hostname")
 	return install
 }
 
@@ -266,13 +267,43 @@ func ask_for_hostname(install Install) Install {
 
 // user menu
 
+//TODO: add create edit delete user and back
 func create_new_user(install Install) Install {
 	var user User
 	install, user = ask_for_username(user, install)
 	install.last_was_next_menu = false
 	return install
 }
+func ask_for_user_password(user User, install Install) (Install, User) {
 
+	input := textinput.New("Enter the root password for " + user.Username + ":")
+	input.Placeholder = "minimum 4 characters"
+	input.Validate = func(s string) bool { return len(s) >= 4 }
+	input.Hidden = true
+
+	password, err := input.RunPrompt()
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		os.Exit(1)
+	}
+	input = textinput.New("Confirm the root password:")
+	input.Placeholder = "minimum 4 characters"
+	input.Validate = func(s string) bool { return len(s) >= 4 }
+	input.Validate = func(s string) bool { return password == s }
+	input.Hidden = true
+
+	_, err = input.RunPrompt()
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+
+		os.Exit(1)
+	}
+	// do something with the result
+	user.Password = password
+	install.last_was_next_menu = false
+	//install.last_step = append(install.last_step, "Password")
+	return install, user
+}
 func ask_for_username(user User, install Install) (Install, User) {
 	input := textinput.New("What is your username?")
 	input.InitialValue = "glenda"
